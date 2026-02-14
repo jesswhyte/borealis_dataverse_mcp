@@ -2,9 +2,8 @@
 
 This is a personal experimentation project and not affiliated with Borealis or Dataverse. It's also a work in progress. It is a custom MCP (Model Context Protocol) server that runs locally and enables a tool like Claude Desktop to search the [Borealis Dataverse](https://borealisdata.ca) - Canada's research data repository - directly from conversations.
 
-**Note**: This MCP server was built with help from Claude for the Python parts. It uses MCP’s stdio transport, so it talks over standard input and output instead of using HTTP. It must be started by an MCP-compatible host (for example, Claude Desktop) and does not run as an HTTP server, so it cannot be started with uvicorn or opened in a browser.
+**Note**: This MCP server was built with help from Claude for the Python parts.
 
-![Screenshot of query and results](screenshots/QueryResults_20260213.jpg) 
 
 ## What It Does
 
@@ -287,6 +286,7 @@ The server should start and wait for input without errors.
 - Geographic filters use the `fq` (filter query) parameter
 - Results are limited to 100 per request (Borealis API limit)
 - Metadata is retrieved in JSON-LD format and parsed for display
+- It uses MCP’s stdio transport, so it talks over standard input and output instead of using HTTP. It must be started by an MCP-compatible host (for example, Claude Desktop) and does not run as an HTTP server, so it cannot be started with uvicorn or opened in a browser.
 
 ## Known Limitations
 
