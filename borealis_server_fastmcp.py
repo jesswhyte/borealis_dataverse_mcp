@@ -1031,11 +1031,10 @@ if __name__ == "__main__":
         print(f"Starting server on {host}:{port}...", file=sys.stderr)
         sys.stderr.flush()  # Ensure logs are visible immediately
 
-        # Use FastMCP's built-in run method
-        # FastMCP will auto-detect HTTP/SSE mode and start uvicorn internally
-        print("Starting FastMCP server...", file=sys.stderr)
+        # Use FastMCP's built-in run method with HTTP transport
+        # Per FastMCP docs: use transport="http" for remote deployment
+        print("Starting FastMCP HTTP server...", file=sys.stderr)
         sys.stderr.flush()
 
-        # Run FastMCP - it will detect HTTP mode based on environment
-        # This will block until the server is stopped
-        mcp.run()
+        # Run with HTTP transport (NOT sse) - this is the correct transport for Railway
+        mcp.run(transport="http", host=host, port=port)
