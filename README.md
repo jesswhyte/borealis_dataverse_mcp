@@ -2,7 +2,7 @@
 
 This is a personal experimentation project and not affiliated with Borealis or Dataverse. It's also a work in progress. It is a custom MCP (Model Context Protocol) server that runs locally and enables a tool like Claude Desktop to search the [Borealis Dataverse](https://borealisdata.ca) - Canada's research data repository - directly from conversations.
 
-**Note**: This MCP server was built with help from Claude for the Python parts. It uses MCP’s stdio transport, so it talks over standard input and output instead of using HTTP. It must be started by an MCP-compatible host (for example, Claude Desktop) and does not run as an HTTP server, so it cannot be started with uvicorn or opened in a browser.
+**Note**: This MCP server was built with help from Claude for the Python parts. 
 
 ![Screenshot of query and results](screenshots/QueryResults_20260213.jpg) 
 
@@ -10,12 +10,9 @@ This is a personal experimentation project and not affiliated with Borealis or D
 
 This connector allows:
 - Searching through research datasets from Canadian institutions
-- Filtering results by specific institutions (70+ Canadian institutions supported)
-- Filtering by geographic coverage (country, province/state, city that the data is about)
-- Returning formatted results with titles, descriptions, DOI links, and authors
+- Filtering results by specific institutions (70+ Canadian institutions supported) and geographic coverage (country, province city that the data is about)
 - Accessing both published and unpublished datasets (unpublished only with API key and access permissions)
-- Retrieving dataset metadata when asking for more information about specific datasets
-- Listing files within datasets with filtering and pagination
+- Retrieving dataset metadata when asking for more information about specific datasets ; Listing files with datasets
 - Retrieving and viewing text-based dataset files directly in chat (under 5MB)
 
 ### Example Queries
@@ -36,10 +33,8 @@ This connector allows:
 - **Sorting**: Sort results by relevance (default), date (newest first), or name (alphabetical)
 - **Type Filtering**: Filter by dataset, dataverse, or file types
 - **Metadata Retrieval**: Get information about specific datasets including descriptions, all authors with affiliations, keywords, license information, and file lists
-- **Limit Results**: Customize number of results (up to 100 per request)
 - **Authentication Support**: Optional API key for accessing unpublished datasets
 - **Automatic Fallback**: Falls back to public search if authentication fails
-- **Results**: Returns DOI links, authors, publication year, and description summaries
 
 ## Prerequisites
 
@@ -287,6 +282,7 @@ The server should start and wait for input without errors.
 - Geographic filters use the `fq` (filter query) parameter
 - Results are limited to 100 per request (Borealis API limit)
 - Metadata is retrieved in JSON-LD format and parsed for display
+- Uses MCP’s stdio transport, so it talks over standard input and output instead of using HTTP. It must be started by an MCP-compatible host (for example, Claude Desktop) and does not run as an HTTP server, so it cannot be started with uvicorn or opened in a browser.
 
 ## Known Limitations
 
