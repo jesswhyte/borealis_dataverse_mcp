@@ -174,14 +174,7 @@ This retrieves comprehensive information including full descriptions, all author
 
 ## Supported Institutions
 
-Includes mappings for 70+ Canadian institutions including:
-
-- Larger universities (U of T, UBC, McGill, Alberta, etc.)
-- Regional universities (Brandon, Cape Breton, Lakehead, etc.)
-- Quebec universities (Université de Montréal, Laval, UQAM, etc.)
-- Colleges and research institutes (Georgian, Fanshawe, Sunnybrook, etc.)
-
-See `borealis_server.py` for the complete list.
+Includes mappings for 70+ Canadian institutions. See `borealis_server.py` for the complete list.
 
 ## Tools Available
 
@@ -303,6 +296,7 @@ Areas for potential enhancement:
 - Better error handling and user feedback
 - Expanded geographic mappings
 - Date range filtering
+- refactoring code, splitting it up if more tools are added
 
 ## License
 
