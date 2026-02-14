@@ -174,9 +174,7 @@ This retrieves comprehensive information including full descriptions, all author
 
 ## Supported Institutions
 
-Includes mappings for 70+ Canadian institutions.
-
-See `borealis_server.py` for the complete list.
+Includes mappings for 70+ Canadian institutions. See `borealis_server.py` for the complete list.
 
 ## Tools Available
 
@@ -298,6 +296,7 @@ Areas for potential enhancement:
 - Better error handling and user feedback
 - Expanded geographic mappings
 - Date range filtering
+- refactoring code, splitting it up if more tools are added
 
 ## License
 
