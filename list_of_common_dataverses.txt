@@ -1,0 +1,75 @@
+University, subtree or dataverse, Province
+Algoma University, algoma, Ontario
+Sunnybrook Research Institute, sunnybrook, Ontario
+University of Victoria, uvic, British Columbia
+Acadia University, acadia, Nova Scotia
+Athabasca University, athabascau, Ontario
+Bishops University, bishops, Quebec
+Brandon University, brandon, Manitoba
+Brock University, brock, Ontario
+Cape Breton University, capebreton, Nova Scotia
+Carleton University, carleton, Ontario
+Concordia, concordia, Quebec
+Dalhousie, dal, Nova Scotia
+Durham, durham, Ontario
+ENAP, enap, Quebec
+ETS, ets, Quebec
+CEGEP Federation, federationcegeps, Quebec
+Fanshawe, fanshawe, Ontario
+Georgian College, georgian, Ontario
+HEC Montreal, hec, Quebec
+INRS, inrs, Quebec
+Lakehead, lakehead, Ontario
+Laurentian, laurentian, Ontario
+MacEwan, macewan, Alberta
+McGill, mcgill, Quebec
+McMaster, mcmaster, Ontario
+Memorial, memorial, Newfoundland
+Mount Allison, mta, New Brunswick
+Mount Royal, mru, Alberta
+Mount Saint Vincent, msvu, Nova Scotia
+Nipissing, nipissing, Ontario
+OCAD, ocad, Ontario
+Ontario Tech U, ontariotechu, Ontario
+Polytechnique Montreal, polymtl, Quebec
+Queens, queens, Ontario
+Royal Military College, rmc, Ontario
+Royal Roads, rru, British Columbia
+Saint Mary's, smu, Nova Scotia
+Saint Francis Xavier, stfx, Nova Scotia
+Thompson Rivers, tru, British Columbia
+Toronto Metropolitan University, tmu, Ontario 
+TMU, tmu, Ontario
+Trent, trent, Ontario
+Trinity Western, twu, British Columbia
+Universite de Montreal, montreal, Quebec
+Université de Saint-Boniface, USB, Manitoba
+University de Sherbrooke, udes, Quebec
+UQAC, uqac, Quebec
+UQAM, uqam, Quebec
+Université du Québec en Abitibi-Témiscamingue, uqat, Quebec
+Université du Québec à Rimouski, uqar, Quebec
+Université du Québec à Trois-Rivières, uqtr, Quebec
+Université du Québec en Outaouais, uqo, Quebec
+Université Laval, laval, Quebec
+Université TÉLUQ, teluq, Quebec
+University of Alberta, ualberta, Alberta
+University of British Columbia, ubc, British Columbia
+University of Calgary, calgary, Alberta
+University of Guelph, guelph, Ontario
+University of Lethbridge, lethbridge, Ontario
+University of Manitoba, manitoba, Manitoba
+University of Northern British Columbia, unbc, British Columbia
+University of Ottawa, ottawa, Ontario
+University of Regina, regina, Saskatchewan
+University of Toronto, toronto, Ontario
+University of Victoria, victoria, British Columbia
+University of Waterloo, waterloo, Ontario
+University of Windsor, windsor, Ontario
+University of Winnipeg, uwinnipeg, Manitoba
+Vancouver Island University, viu, British Columbia
+Western University, western, Ontario
+Wilfred Laurier University, laurier, Ontario
+York university, york, Ontario
+
+
