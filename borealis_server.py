@@ -227,7 +227,7 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="search_datasets",
-            description="Search for datasets in Borealis Dataverse by keywords, subjects, or other criteria. Returns a list of matching datasets with basic information. When presenting results to the user, ALWAYS include the full DOI URL (e.g., https://doi.org/10.34990/FK2/XXXXX) for each dataset in your summary.",
+            description="Search for datasets in Borealis Dataverse by keywords, subjects, or other criteria. Returns a list of matching datasets with basic information. When presenting results to the user, ALWAYS include the full DOI URL (e.g., https://doi.org/10.34990/FK2/XXXXX) and the authors for each dataset in your summary. Do not omit author information.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -254,9 +254,35 @@ async def list_tools() -> list[Tool]:
                     "dataverse": {
                         "type": "string",
                         "description": "Optional: Limit search to a specific university/institution dataverse. Can be specified as either the university name (e.g., 'University of Toronto', 'UBC') or the dataverse identifier (e.g., 'toronto', 'ubc'). Supports all major Canadian universities and colleges including University of Toronto, University of Alberta, UBC, McGill, Concordia, Dalhousie, and many others."
+                    },
+                    "country": {
+                        "type": "string",
+                        "description": "Optional: Filter by the geographic coverage/subject area of datasets (e.g., datasets ABOUT 'Canada', 'United States'). This indicates what region the data describes, not where researchers are located."
+                    },
+                    "province": {
+                        "type": "string",
+                        "description": "Optional: Filter by the geographic coverage/subject area of datasets (e.g., datasets ABOUT 'Ontario', 'Nova Scotia', 'British Columbia', 'Quebec'). This indicates what province/state the data describes, not where researchers are located."
+                    },
+                    "city": {
+                        "type": "string",
+                        "description": "Optional: Filter by the geographic coverage/subject area of datasets (e.g., datasets ABOUT 'Toronto', 'Halifax', 'Vancouver'). This indicates what city the data describes, not where researchers are located."
                     }
                 },
                 "required": ["query"]
+            }
+        ),
+        Tool(
+            name="get_dataset_metadata",
+            description="Retrieve detailed metadata for a specific dataset from Borealis Dataverse. Use this when the user asks for more information about a specific dataset found in search results. Returns comprehensive metadata including full description, authors, keywords, subjects, file information, and more.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "identifier": {
+                        "type": "string",
+                        "description": "Dataset identifier - can be either a DOI (e.g., 'doi:10.34990/FK2/ABC123' or 'https://doi.org/10.34990/FK2/ABC123') or a numeric database ID. DOIs are preferred."
+                    }
+                },
+                "required": ["identifier"]
             }
         )
     ]
@@ -266,6 +292,8 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     """Handle tool calls."""
     if name == "search_datasets":
         return await search_datasets(arguments)
+    elif name == "get_dataset_metadata":
+        return await get_dataset_metadata(arguments)
     else:
         raise ValueError(f"Unknown tool: {name}")
 
@@ -287,6 +315,216 @@ def format_date(date_string: str) -> str:
     # Extract just the year (first 4 characters)
     return date_string[:4]
 
+async def get_dataset_metadata(arguments: dict) -> list[TextContent]:
+    """Retrieve detailed metadata for a specific dataset."""
+    identifier = arguments.get("identifier", "")
+    
+    if not identifier:
+        return [TextContent(
+            type="text",
+            text="Error: No dataset identifier provided."
+        )]
+    
+    # Clean up the identifier
+    # If it's a full DOI URL, extract just the DOI part
+    if identifier.startswith("http"):
+        # Extract DOI from URL like https://doi.org/10.34990/FK2/ABC123
+        identifier = identifier.split("doi.org/")[-1]
+        if not identifier.startswith("doi:"):
+            identifier = f"doi:{identifier}"
+    elif not identifier.startswith("doi:") and not identifier.isdigit():
+        # If it looks like a DOI but doesn't have the prefix, add it
+        identifier = f"doi:{identifier}"
+    
+    # Build the API URL
+    # Use persistentId parameter for DOIs, or direct ID for numeric IDs
+    if identifier.startswith("doi:"):
+        api_url = f"{BOREALIS_BASE_URL}/datasets/:persistentId/metadata"
+        params = {"persistentId": identifier}
+    else:
+        # Numeric dataset ID
+        api_url = f"{BOREALIS_BASE_URL}/datasets/{identifier}/metadata"
+        params = {}
+    
+    # Prepare headers
+    headers = {
+        "Accept": "application/ld+json"
+    }
+    use_auth = False
+    if API_KEY and len(API_KEY) > 10:
+        headers["X-Dataverse-key"] = API_KEY
+        use_auth = True
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                api_url,
+                params=params,
+                headers=headers
+            )
+            
+            # If we get a 401 with auth, try again without auth for public datasets
+            if response.status_code == 401 and use_auth:
+                headers = {
+                    "Accept": "application/ld+json"
+                }
+                response = await client.get(
+                    api_url,
+                    params=params,
+                    headers=headers
+                )
+            
+            response.raise_for_status()
+            response_data = response.json()
+        
+        # Check if response was successful
+        if response_data.get("status") != "OK":
+            return [TextContent(
+                type="text",
+                text=f"Error: API returned status '{response_data.get('status')}'"
+            )]
+        
+        # Extract the actual metadata from the 'data' field
+        metadata = response_data.get("data", {})
+        
+        if not metadata:
+            return [TextContent(
+                type="text",
+                text="Error: No metadata found in API response."
+            )]
+        
+        # Parse and format the metadata
+        result_text = "# Dataset Metadata\n\n"
+        
+        # Title
+        title = metadata.get("title", metadata.get("schema:name", "No title available"))
+        result_text += f"**Title:** {title}\n\n"
+        
+        # DOI/Identifier
+        doi = metadata.get("@id", "")
+        if doi:
+            result_text += f"**DOI:** {doi}\n\n"
+        
+        # Description (from citation:dsDescription)
+        description_obj = metadata.get("citation:dsDescription", {})
+        if isinstance(description_obj, dict):
+            description = description_obj.get("citation:dsDescriptionValue", "No description available")
+        else:
+            description = metadata.get("schema:description", "No description available")
+        
+        # Strip HTML tags for cleaner display if present
+        import re
+        description_text = re.sub(r'<[^>]+>', '', description)
+        # Limit description length for display
+        if len(description_text) > 500:
+            description_text = description_text[:500] + "..."
+        result_text += f"**Description:** {description_text}\n\n"
+        
+        # Authors/Creators
+        authors = metadata.get("author", [])
+        if authors:
+            author_list = []
+            for author in authors:
+                if isinstance(author, dict):
+                    name = author.get("citation:authorName", "")
+                    affiliation = author.get("citation:authorAffiliation", "")
+                    if name:
+                        if affiliation:
+                            author_list.append(f"{name} ({affiliation})")
+                        else:
+                            author_list.append(name)
+            if author_list:
+                result_text += f"**Authors:**\n"
+                for author in author_list:
+                    result_text += f"  - {author}\n"
+                result_text += "\n"
+        
+        # Publication Date
+        date_published = metadata.get("schema:datePublished", metadata.get("dateOfDeposit", ""))
+        if date_published:
+            result_text += f"**Publication Date:** {format_date(date_published)}\n\n"
+        
+        # Keywords
+        keywords = metadata.get("citation:keyword", [])
+        if keywords:
+            keyword_list = []
+            for kw in keywords:
+                if isinstance(kw, dict):
+                    keyword_list.append(kw.get("citation:keywordValue", ""))
+                else:
+                    keyword_list.append(str(kw))
+            if keyword_list:
+                result_text += f"**Keywords:** {', '.join(keyword_list)}\n\n"
+        
+        # Subject
+        subject = metadata.get("subject", "")
+        if subject:
+            result_text += f"**Subject:** {subject}\n\n"
+        
+        # License
+        license_info = metadata.get("schema:license", "")
+        if license_info:
+            result_text += f"**License:** {license_info}\n\n"
+        
+        # Alternative URL (often HuggingFace, GitHub, etc.)
+        alt_url = metadata.get("alternativeURL", "")
+        if alt_url:
+            result_text += f"**Alternative URL:** {alt_url}\n\n"
+        
+        # Dataverse/Collection
+        part_of = metadata.get("schema:isPartOf", {})
+        if isinstance(part_of, dict):
+            collection_name = part_of.get("schema:name", "")
+            if collection_name:
+                result_text += f"**Collection:** {collection_name}\n\n"
+        
+        # Contact
+        contacts = metadata.get("citation:datasetContact", [])
+        if contacts:
+            contact_list = []
+            for contact in contacts:
+                if isinstance(contact, dict):
+                    name = contact.get("citation:datasetContactName", "")
+                    affiliation = contact.get("citation:datasetContactAffiliation", "")
+                    if name:
+                        if affiliation:
+                            contact_list.append(f"{name} ({affiliation})")
+                        else:
+                            contact_list.append(name)
+            if contact_list:
+                result_text += f"**Contact:** {', '.join(contact_list)}\n\n"
+        
+        # Version
+        version = metadata.get("schema:version", "")
+        if version:
+            result_text += f"**Version:** {version}\n\n"
+        
+        # Status
+        status = metadata.get("schema:creativeWorkStatus", "")
+        if status:
+            result_text += f"**Status:** {status}\n\n"
+        
+        return [TextContent(type="text", text=result_text)]
+        
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            error_msg = f"Dataset not found: {identifier}\n"
+            error_msg += "Please check the DOI or dataset ID and try again."
+        else:
+            error_msg = f"HTTP error occurred: {e.response.status_code}\n"
+            try:
+                error_data = e.response.json()
+                error_msg += f"API Response: {error_data}\n"
+            except:
+                error_msg += f"Response: {e.response.text}\n"
+        return [TextContent(type="text", text=error_msg)]
+    except httpx.RequestError as e:
+        error_msg = f"Request error occurred: {str(e)}"
+        return [TextContent(type="text", text=error_msg)]
+    except Exception as e:
+        error_msg = f"Unexpected error retrieving metadata: {str(e)}"
+        return [TextContent(type="text", text=error_msg)]
+
 async def search_datasets(arguments: dict) -> list[TextContent]:
     """Search for datasets in Borealis Dataverse."""
     query = arguments.get("query", "*")
@@ -294,6 +532,9 @@ async def search_datasets(arguments: dict) -> list[TextContent]:
     sort_field = arguments.get("sort", "relevance")
     result_type = arguments.get("type")
     dataverse = arguments.get("dataverse")
+    country = arguments.get("country")
+    province = arguments.get("province")
+    city = arguments.get("city")
     
     # Validate per_page
     if per_page > 100:
@@ -324,6 +565,34 @@ async def search_datasets(arguments: dict) -> list[TextContent]:
     # Add dataverse/subtree filter if specified
     if dataverse:
         params["subtree"] = dataverse
+    
+    # Add geographic filters using fq (filter query) parameter
+    # Multiple fq parameters can be combined
+    if country:
+        params["fq"] = f"country:{country}"
+    
+    if province:
+        # If we already have an fq param, we need to handle multiple filters
+        # The API accepts multiple fq parameters as separate query params
+        fq_value = f"state:{province}"
+        if "fq" in params:
+            # httpx will handle multiple values for the same parameter
+            if isinstance(params["fq"], list):
+                params["fq"].append(fq_value)
+            else:
+                params["fq"] = [params["fq"], fq_value]
+        else:
+            params["fq"] = fq_value
+    
+    if city:
+        fq_value = f"city:{city}"
+        if "fq" in params:
+            if isinstance(params["fq"], list):
+                params["fq"].append(fq_value)
+            else:
+                params["fq"] = [params["fq"], fq_value]
+        else:
+            params["fq"] = fq_value
     
     # Prepare headers - only add API key if it exists and looks valid
     headers = {}

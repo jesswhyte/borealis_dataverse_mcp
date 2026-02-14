@@ -4,30 +4,38 @@ This is a personal experimentation project and not affiliated with Borealis or D
 
 **Note**: This MCP server was developed with assistance from Claude for Python coding. 
 
-![Screenshot of query and results](screenshots/Screenshot_QueryResults_20260213.jpg) 
+![Screenshot of query and results](screenshots/QueryResults_20260213.jpg) 
 
 ## What It Does
 
 This connector allows:
-- Searching through thousands of research datasets from Canadian universities
-- Filter results by specific institutions (70+ Canadian universities supported)
-- Return formatted results with titles, descriptions, DOI links, and authors
-- Access both published and unpublished datasets (unpublished with API key and access permissions)
+- Searching through Borealis research datasets from Canadian institutions
+- Filtering results by specific institutions (70+ Canadian institutions supported)
+- Filtering by geographic coverage (country, province/state, city that the data is about)
+- Returning formatted results with titles, descriptions, DOI links, and authors
+- Accessing both published and unpublished datasets (unpublished with API key and access permissions)
+- Retrieving detailed dataset metadata when asking for more information about specific datasets
 
 ### Example Queries
 
 - "Search Borealis for datasets about pollination"
-- "Use my Borealis search tool to find datasets from the University of Toronto about bees"
+- "Use my Borealis search tool to find datasets from UofT about dementia"
 - "Show me datasets from the last 5 years from UBC about forestry"
+- "Find datasets about Halifax healthcare"
+- "Tell me more about the SynPAIN dataset"
 
 ## Features
 
-- **Search**: Query by keywords, subjects
-- **University Filtering**: Automatic translation of university names to dataverse identifiers (e.g., "University of Toronto" → `toronto`)
-- **Flexible Parameters**: Customize number of results, sorting, and type filtering
+- **Search**: Query by keywords and subjects
+- **University Filtering**: translation of institution names to dataverse identifiers (e.g., "University of Toronto" → `toronto`)
+- **Geographic Filtering**: Filter by the geographic coverage of datasets (what region the data is about, not where researchers are located)
+- **Sorting**: Sort results by relevance (default), date (newest first), or name (alphabetical)
+- **Type Filtering**: Filter by dataset, dataverse, or file types
+- **Detailed Metadata Retrieval**: Get information about specific datasets including full descriptions, all authors with affiliations, keywords, license information, and file lists
+- **Flexible Parameters**: Customize number of results (up to 100 per request)
 - **Authentication Support**: Optional API key for accessing unpublished datasets
 - **Automatic Fallback**: Falls back to public search if authentication fails
-- **Results**: Returns DOI links, authors, publication dates, and description summaries
+- **Results**: Should return DOI links, authors, publication year, and description summaries
 
 ## Prerequisites
 
@@ -36,6 +44,8 @@ This connector allows:
 - A Borealis account and API key (optional - public searches work without authentication)
 
 ## Installation
+
+Example below is using Claude desktop on a Mac: 
 
 ### 1. Install Required Dependencies
 
@@ -126,34 +136,73 @@ Search Borealis for datasets about pelagic species from the University of Albert
 Search Borealis for datasets about [your topic]
 ```
 
-### Search by University
+### Search by Institution
 
 ```
-Find datasets from [University Name] about [topic]
+Find datasets from [Institution Name] about [topic]
 ```
 
-Supported university formats:
+Supported institution formats:
 - Full names: "University of Toronto", "McGill University"
 - Some short names: "UBC", "U of T"
 - Common abbreviations: "UAlberta", "UWaterloo"
 
+### Search by Geographic Coverage
+
+```
+Find datasets about [city/province/country]
+```
+
+Note: Geographic filters indicate what region the data is *about* (e.g., "datasets about Halifax"), not where the researchers are located.
+
+### Get More Information
+
+After viewing search results, you can ask for detailed metadata:
+
+```
+Tell me more about the [dataset name]
+```
+
+This retrieves comprehensive information including full descriptions, all authors with affiliations, keywords, license details, and file information.
+
 ### Advanced Options
 
-The tool supports:
 - **Number of results**: Request more or fewer results (max 100) in prompt
-- **Sorting**: Sort by relevance (default), date, or name
+- **Sorting**: Sort by relevance (default), date (newest first), or name (alphabetical)
 - **Type filtering**: Filter by dataset, dataverse, or file
+- **Combined filters**: Mix university, geographic, and keyword filters in a single query
 
-## Supported Universities
+## Supported Institutions
 
-The server includes mappings for 70+ Canadian institutions including:
+Includes mappings for 70+ Canadian institutions including:
 
 - Larger universities (U of T, UBC, McGill, Alberta, etc.)
 - Regional universities (Brandon, Cape Breton, Lakehead, etc.)
 - Quebec universities (Université de Montréal, Laval, UQAM, etc.)
-- Colleges and institutes (Georgian, Fanshawe, OCAD, etc.)
+- Colleges and research institutes (Georgian, Fanshawe, Sunnybrook, etc.)
 
 See `borealis_server.py` for the complete list.
+
+## Tools Available
+
+The MCP server provides two tools:
+
+### 1. search_datasets
+Search for datasets with support for:
+- Keyword queries
+- Institution filtering
+- Geographic filtering (country, province/state, city)
+
+### 2. get_dataset_metadata
+Retrieve detailed metadata for a specific dataset including:
+- Full description (with HTML stripped for readability)
+- All authors with institutional affiliations
+- Publication date
+- Keywords and subjects
+- License information
+- Alternative URLs (e.g., HuggingFace repositories)
+- Dataset version and status
+- Contact information
 
 ## Architecture
 
@@ -166,17 +215,22 @@ See `borealis_server.py` for the complete list.
 
 ### How It Works
 
-1. receives a search request from the user
-2. The MCP server translates university names to dataverse identifiers
+1. Receives a search or metadata request from the user
+2. The MCP server translates institution names to dataverse identifiers and formats queries
 3. The server queries the Borealis API with appropriate filters
-4. Results are formatted and returned
-5. Presents the results with DOI links and metadata
+4. Results are parsed and formatted
+5. Returns structured results with DOI links and metadata 
 
 ## Troubleshooting
 
 ### Server Not Connecting
 
+**Give it a second or restart Claude**
+Sometimes the MCP server doesn't start up fast enough, try restarting Claude and give it a second before attempting again. 
+
 **Check the logs:**
+For example...
+
 ```bash
 cat ~/Library/Logs/Claude/mcp*.log | tail -50
 ```
@@ -204,7 +258,7 @@ curl -H "X-Dataverse-key: YOUR_KEY" "https://borealisdata.ca/api/search?q=test"
 
 ### Extending the Server
 
-To add additional tools (e.g., `get_dataset_metadata`, `list_collections`):
+To add additional tools:
 
 1. Add the tool definition to `list_tools()`
 2. Implement the handler function
@@ -227,20 +281,28 @@ The server should start and wait for input without errors.
 
 - The server uses async/await for non-blocking API calls
 - Authentication is optional; public searches work without an API key
-- University name matching is case-insensitive
+- Institution name matching is case-insensitive
 - The `subtree` parameter filters results to specific dataverses
+- Geographic filters use the `fq` (filter query) parameter
 - Results are limited to 100 per request (Borealis API limit)
+- Metadata is retrieved in JSON-LD format and parsed for display
 
-## Improving
+## Known Limitations
 
-Areas for improvement:
+- Geographic filters indicate dataset subject matter, not researcher location
+- Regional groupings (e.g., "Toronto-based research" spanning multiple institutions) not yet implemented
+- Some MCP server startup timing issues may require restarting Claude Desktop
 
-- Additional search tools (metadata retrieval, file access)
-- More refined search
-- Support for more advanced Borealis API features
+## Future Improvements
+
+Areas for potential enhancement:
+
+- Regional institution groupings (e.g., all Toronto institutions)
+- File download capabilities
+- More advanced search operators
 - Better error handling and user feedback
-- Extended university mappings
-- Better way to store and use university mappings
+- Expanded geographic mappings
+- Date range filtering
 
 ## License
 
@@ -261,5 +323,3 @@ For issues related to:
 - **MCP Protocol**: See https://modelcontextprotocol.io/
 
 ---
-
-
