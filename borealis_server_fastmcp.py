@@ -1031,15 +1031,16 @@ if __name__ == "__main__":
         print(f"Starting server on {host}:{port}...", file=sys.stderr)
         sys.stderr.flush()  # Ensure logs are visible immediately
 
-        # FastMCP reads HOST and PORT from environment variables
-        # Make sure they're set before calling run()
-        os.environ["HOST"] = host
-        os.environ["PORT"] = str(port)
+        # Use ASGI app approach (mcp.run() doesn't support HTTP transport)
+        # Create ASGI app and run with uvicorn directly
+        import uvicorn
 
-        # Use FastMCP's built-in run method with HTTP transport
-        # Per FastMCP docs: use transport="http" for remote deployment
-        print("Starting FastMCP HTTP server...", file=sys.stderr)
+        print("Creating FastMCP ASGI app...", file=sys.stderr)
         sys.stderr.flush()
 
-        # Run with HTTP transport - host/port configured via environment variables
-        mcp.run(transport="http")
+        app = mcp.http_app()
+
+        print("Starting uvicorn server...", file=sys.stderr)
+        sys.stderr.flush()
+
+        uvicorn.run(app, host=host, port=port, log_level="info")
