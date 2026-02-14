@@ -1029,23 +1029,14 @@ if __name__ == "__main__":
             print("   Set AUTH_TOKENS environment variable for production use.", file=sys.stderr)
 
         print(f"Starting server on {host}:{port}...", file=sys.stderr)
+        sys.stderr.flush()  # Ensure logs are visible immediately
 
-        # Try to get the ASGI app from FastMCP and run it with uvicorn
-        import uvicorn
+        # Use FastMCP's built-in run method with SSE transport
+        # FastMCP will start its own uvicorn server internally
+        # It reads HOST and PORT from environment variables
+        print("Starting FastMCP with SSE transport...", file=sys.stderr)
+        sys.stderr.flush()
 
-        # Check if FastMCP has an app attribute
-        if hasattr(mcp, 'app'):
-            # FastMCP exposes an ASGI app
-            print("Using FastMCP.app directly with uvicorn", file=sys.stderr)
-            uvicorn.run(mcp.app, host=host, port=port, log_level="info")
-        else:
-            # Fallback: use FastMCP's run() method with SSE transport
-            # Note: port/host configuration via environment variables may not work
-            print("⚠️  Using FastMCP.run() - port/host configuration limited", file=sys.stderr)
-
-            # Set environment variables that SSE transport might use
-            os.environ.setdefault("HOST", host)
-            os.environ.setdefault("PORT", str(port))
-
-            # Run with SSE transport (required for HTTP mode)
-            mcp.run(transport="sse")
+        # Run with SSE transport (required for HTTP mode)
+        # This will block until the server is stopped
+        mcp.run(transport="sse")
