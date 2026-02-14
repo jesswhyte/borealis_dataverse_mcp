@@ -230,14 +230,16 @@ The server should start and wait for input without errors.
 - The `subtree` parameter filters results to specific dataverses
 - Results are limited to 100 per request (Borealis API limit)
 
-## Contributing
+## Improving
 
-Contributions are welcome! Areas for improvement:
+Areas for improvement:
 
 - Additional search tools (metadata retrieval, file access)
+- More refined search
 - Support for more advanced Borealis API features
 - Better error handling and user feedback
 - Extended university mappings
+- Better way to store and use university mappings
 
 ## License
 
@@ -247,7 +249,7 @@ GPLv3
 
 - Built using the [Model Context Protocol](https://modelcontextprotocol.io/)
 - Developed with a lot of assistance from Claude 
-- Powered by the amazing API at [Borealis Dataverse](https://borealisdata.ca)
+- Powered by the amazing Dataverse API and search, and [Borealis Dataverse](https://borealisdata.ca)
 
 ## Support
 

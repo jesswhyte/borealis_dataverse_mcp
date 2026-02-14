@@ -18,12 +18,14 @@ UNIVERSITY_DATAVERSE_MAP = {
     "sunnybrook": "sunnybrook",
     "university of victoria": "uvic",
     "uvic": "uvic",
+    "victoria": "uvic",
     "acadia university": "acadia",
     "acadia": "acadia",
     "athabasca university": "athabascau",
     "athabasca": "athabascau",
     "bishops university": "bishops",
     "bishops": "bishops",
+    "bishop's university": "bishops",
     "brandon university": "brandon",
     "brandon": "brandon",
     "brock university": "brock",
@@ -40,7 +42,11 @@ UNIVERSITY_DATAVERSE_MAP = {
     "durham": "durham",
     "durham college": "durham",
     "enap": "enap",
+    "école nationale d'administration publique": "enap",
+    "ecole nationale d'administration publique": "enap",
     "ets": "ets",
+    "école de technologie supérieure": "ets",
+    "ecole de technologie superieure": "ets",
     "cegep federation": "federationcegeps",
     "federation cegeps": "federationcegeps",
     "fanshawe": "fanshawe",
@@ -48,8 +54,10 @@ UNIVERSITY_DATAVERSE_MAP = {
     "georgian college": "georgian",
     "georgian": "georgian",
     "hec montreal": "hec",
+    "hec montréal": "hec",
     "hec": "hec",
     "inrs": "inrs",
+    "institut national de la recherche scientifique": "inrs",
     "lakehead": "lakehead",
     "lakehead university": "lakehead",
     "laurentian": "laurentian",
@@ -75,10 +83,12 @@ UNIVERSITY_DATAVERSE_MAP = {
     "nipissing university": "nipissing",
     "ocad": "ocad",
     "ocad university": "ocad",
+    "ontario college of art and design": "ocad",
     "ontario tech": "ontariotechu",
     "ontario tech university": "ontariotechu",
     "ontariotechu": "ontariotechu",
     "polytechnique montreal": "polymtl",
+    "polytechnique montréal": "polymtl",
     "polytechnique": "polymtl",
     "polymtl": "polymtl",
     "queens": "queens",
@@ -92,6 +102,7 @@ UNIVERSITY_DATAVERSE_MAP = {
     "rru": "rru",
     "saint mary's": "smu",
     "saint mary's university": "smu",
+    "st mary's": "smu",
     "smu": "smu",
     "saint francis xavier": "stfx",
     "saint francis xavier university": "stfx",
@@ -114,6 +125,7 @@ UNIVERSITY_DATAVERSE_MAP = {
     "université de montréal": "montreal",
     "university of montreal": "montreal",
     "montreal": "montreal",
+    "udem": "montreal",
     "université de saint-boniface": "USB",
     "universite de saint-boniface": "USB",
     "usb": "USB",
@@ -123,7 +135,11 @@ UNIVERSITY_DATAVERSE_MAP = {
     "sherbrooke": "udes",
     "udes": "udes",
     "uqac": "uqac",
+    "université du québec à chicoutimi": "uqac",
+    "universite du quebec a chicoutimi": "uqac",
     "uqam": "uqam",
+    "université du québec à montréal": "uqam",
+    "universite du quebec a montreal": "uqam",
     "université du québec en abitibi-témiscamingue": "uqat",
     "universite du quebec en abitibi-temiscamingue": "uqat",
     "uqat": "uqat",
@@ -142,6 +158,7 @@ UNIVERSITY_DATAVERSE_MAP = {
     "université téluq": "teluq",
     "universite teluq": "teluq",
     "teluq": "teluq",
+    "téluq": "teluq",
     "university of alberta": "ualberta",
     "ualberta": "ualberta",
     "alberta": "ualberta",
@@ -152,13 +169,16 @@ UNIVERSITY_DATAVERSE_MAP = {
     "university of calgary": "calgary",
     "calgary": "calgary",
     "u of c": "calgary",
+    "ucalgary": "calgary",
     "university of guelph": "guelph",
     "guelph": "guelph",
     "university of lethbridge": "lethbridge",
     "lethbridge": "lethbridge",
+    "ulethbridge": "lethbridge",
     "university of manitoba": "manitoba",
     "manitoba": "manitoba",
     "u of m": "manitoba",
+    "umanitoba": "manitoba",
     "university of northern british columbia": "unbc",
     "unbc": "unbc",
     "northern british columbia": "unbc",
@@ -168,15 +188,18 @@ UNIVERSITY_DATAVERSE_MAP = {
     "u of o": "ottawa",
     "university of regina": "regina",
     "regina": "regina",
+    "uregina": "regina",
     "university of toronto": "toronto",
     "toronto": "toronto",
     "u of t": "toronto",
     "uoft": "toronto",
+    "ut": "toronto",
     "university of waterloo": "waterloo",
     "waterloo": "waterloo",
     "uwaterloo": "waterloo",
     "university of windsor": "windsor",
     "windsor": "windsor",
+    "uwindsor": "windsor",
     "university of winnipeg": "uwinnipeg",
     "winnipeg": "uwinnipeg",
     "uwinnipeg": "uwinnipeg",
@@ -188,6 +211,7 @@ UNIVERSITY_DATAVERSE_MAP = {
     "uwo": "western",
     "wilfred laurier university": "laurier",
     "wilfrid laurier": "laurier",
+    "wilfrid laurier university": "laurier",
     "laurier": "laurier",
     "wlu": "laurier",
     "york university": "york",
@@ -244,6 +268,24 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         return await search_datasets(arguments)
     else:
         raise ValueError(f"Unknown tool: {name}")
+
+def format_authors(authors: list) -> str:
+    """Format author list - show all if 3 or fewer, otherwise show first + et al."""
+    if not authors:
+        return "No authors listed"
+    
+    if len(authors) <= 3:
+        return ", ".join(authors)
+    else:
+        return f"{authors[0]} et al."
+
+def format_date(date_string: str) -> str:
+    """Format date string to show just the year."""
+    if not date_string:
+        return "No date available"
+    
+    # Extract just the year (first 4 characters)
+    return date_string[:4]
 
 async def search_datasets(arguments: dict) -> list[TextContent]:
     """Search for datasets in Borealis Dataverse."""
@@ -328,7 +370,7 @@ async def search_datasets(arguments: dict) -> list[TextContent]:
                 text=f"No results found for query: '{query}'"
             )]
         
-        # Format results
+        # Format results with consistent structure
         result_text = f"Found {total_count} results for '{query}'\n"
         result_text += f"Showing {len(items)} results:\n\n"
         
@@ -338,31 +380,47 @@ async def search_datasets(arguments: dict) -> list[TextContent]:
             url = item.get("url", "")
             description = item.get("description", "No description available")
             
-            # Truncate long descriptions
-            if len(description) > 200:
-                description = description[:200] + "..."
+            # Truncate long descriptions to ~150 characters
+            if len(description) > 150:
+                description = description[:150] + "..."
             
-            result_text += f"{idx}. [{name}]({url})\n"
+            # Start with title and type
+            result_text += f"{idx}. **{name}**\n"
             result_text += f"   Type: {item_type}\n"
             
-            # Add dataset-specific information
+            # For datasets, always show: DOI, Authors, Date, Description
             if item_type == "dataset":
+                # DOI (required field)
                 global_id = item.get("global_id", "")
-                authors = item.get("authors", [])
-                published_at = item.get("published_at", "")
-                
                 if global_id:
-                    result_text += f"   DOI: {global_id}\n"
-                if authors:
-                    result_text += f"   Authors: {', '.join(authors)}\n"
-                if published_at:
-                    result_text += f"   Published: {published_at}\n"
+                    # Convert DOI to full URL if it's not already
+                    doi_url = global_id if global_id.startswith("http") else f"https://doi.org/{global_id.replace('doi:', '')}"
+                    result_text += f"   DOI: {doi_url}\n"
+                else:
+                    result_text += f"   DOI: {url}\n"  # Fallback to dataset URL
+                
+                # Authors (required field)
+                authors = item.get("authors", [])
+                result_text += f"   Authors: {format_authors(authors)}\n"
+                
+                # Date (required field)
+                published_at = item.get("published_at", "")
+                result_text += f"   Date: {format_date(published_at)}\n"
+                
+                # Description (required field)
+                result_text += f"   Description: {description}\n"
             
-            result_text += f"   Description: {description}\n\n"
+            # For dataverses and files, show simpler info
+            else:
+                if url:
+                    result_text += f"   URL: {url}\n"
+                result_text += f"   Description: {description}\n"
+            
+            result_text += "\n"
         
         if total_count > len(items):
-            result_text += f"\n(Showing {len(items)} of {total_count} total results. "
-            result_text += "Adjust 'per_page' parameter to see more results.)"
+            result_text += f"(Showing {len(items)} of {total_count} total results. "
+            result_text += "Adjust 'per_page' parameter to see more results.)\n"
         
         return [TextContent(type="text", text=result_text)]
         
