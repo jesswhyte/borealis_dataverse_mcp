@@ -1031,10 +1031,15 @@ if __name__ == "__main__":
         print(f"Starting server on {host}:{port}...", file=sys.stderr)
         sys.stderr.flush()  # Ensure logs are visible immediately
 
+        # FastMCP reads HOST and PORT from environment variables
+        # Make sure they're set before calling run()
+        os.environ["HOST"] = host
+        os.environ["PORT"] = str(port)
+
         # Use FastMCP's built-in run method with HTTP transport
         # Per FastMCP docs: use transport="http" for remote deployment
         print("Starting FastMCP HTTP server...", file=sys.stderr)
         sys.stderr.flush()
 
-        # Run with HTTP transport (NOT sse) - this is the correct transport for Railway
-        mcp.run(transport="http", host=host, port=port)
+        # Run with HTTP transport - host/port configured via environment variables
+        mcp.run(transport="http")
