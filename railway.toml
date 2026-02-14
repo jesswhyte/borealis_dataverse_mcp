@@ -12,7 +12,5 @@ restartPolicyMaxRetries = 10
 # AUTH_TOKENS - Comma-separated list of valid bearer tokens
 # MCP_TRANSPORT - Set to "http" for Railway (auto-detected, but can be explicit)
 
-[healthcheck]
-path = "/health"
-timeout = 10
-interval = 30
+# Note: Railway will use TCP health checks by default
+# FastMCP doesn't provide a /health endpoint, only /sse
