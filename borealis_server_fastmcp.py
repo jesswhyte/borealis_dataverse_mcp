@@ -1031,12 +1031,11 @@ if __name__ == "__main__":
         print(f"Starting server on {host}:{port}...", file=sys.stderr)
         sys.stderr.flush()  # Ensure logs are visible immediately
 
-        # Use FastMCP's built-in run method with SSE transport
-        # FastMCP will start its own uvicorn server internally
-        # It reads HOST and PORT from environment variables
-        print("Starting FastMCP with SSE transport...", file=sys.stderr)
+        # Use FastMCP's built-in run method
+        # FastMCP will auto-detect HTTP/SSE mode and start uvicorn internally
+        print("Starting FastMCP server...", file=sys.stderr)
         sys.stderr.flush()
 
-        # Run with SSE transport (required for HTTP mode)
+        # Run FastMCP - it will detect HTTP mode based on environment
         # This will block until the server is stopped
-        mcp.run(transport="sse")
+        mcp.run()
