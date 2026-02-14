@@ -5,8 +5,6 @@ This is a personal experimentation project and not affiliated with Borealis or D
 **Note**: This MCP server was built with help from Claude for the Python parts.
 
 ![Screenshot of query and results](screenshots/QueryResults_20260213.jpg) 
-
-![Screenshot of query and results](screenshots/QueryResults_20260213.jpg) 
 ![Screenshot of asking for more info about a dataset](screenshots/TellMeMore2.jpg)
 ![Screenshot of querying the data itself](screenshots/TellMeMore3_TabDataQuestion.jpg)
 
