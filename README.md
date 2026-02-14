@@ -8,7 +8,7 @@ This is a personal experimentation project and not affiliated with Borealis or D
 
 ## What It Does
 
-This connector allows:
+This connector relies on the Borealis API and metadata to allow:
 - Searching through Borealis research datasets from Canadian institutions
 - Filtering results by specific institutions (70+ Canadian institutions supported)
 - Filtering by geographic coverage (country, province/state, city that the data is about)
