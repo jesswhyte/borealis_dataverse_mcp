@@ -304,6 +304,7 @@ Areas for potential enhancement:
 - Better error handling and user feedback
 - Expanded geographic mappings
 - Date range filtering
+- Could add an HTTP based MCP interface so it works with OpenAI style connectors.
 
 ## License
 
