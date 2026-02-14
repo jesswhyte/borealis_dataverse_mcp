@@ -4,7 +4,7 @@ This is a personal experimentation project and not affiliated with Borealis or D
 
 **Note**: This MCP server was developed with assistance from Claude for Python coding. 
 
-![Screenshot of query and results](screenshots/QueryResults_Dementia_20260213.jpg) 
+![Screenshot of query and results](screenshots/QueryResults_20260213.jpg) 
 
 ## What It Does
 
