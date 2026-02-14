@@ -23,7 +23,7 @@ This connector allows:
 - "Search Borealis for datasets about pollination"
 - "Use my Borealis search tool to find datasets from UofT about bees"
 - "Show me datasets from the last 5 years from UBC about forestry"
-- "Find datasets about Halifax healthcare"
+- "Find datasets about healthcare in Saskatchewan"
 - "Tell me more about the SynPAIN dataset"
 - "What files are in this dataset?"
 - "Can we look at the readme file together?"
