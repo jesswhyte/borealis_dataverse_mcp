@@ -1,1 +1,8 @@
 .DS_Store
+.claude/
+.env
+IMPLEMENTATION_SUMMARY.md
+README_HTTP.md
+SUNDAY.md
+TESTING.md
+__pycache__/
