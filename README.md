@@ -8,34 +8,38 @@ This is a personal experimentation project and not affiliated with Borealis or D
 
 ## What It Does
 
-This connector relies on the Borealis API and metadata to allow:
-- Searching through Borealis research datasets from Canadian institutions
+This connector allows:
+- Searching through research datasets from Canadian institutions
 - Filtering results by specific institutions (70+ Canadian institutions supported)
 - Filtering by geographic coverage (country, province/state, city that the data is about)
 - Returning formatted results with titles, descriptions, DOI links, and authors
-- Accessing both published and unpublished datasets (unpublished with API key and access permissions)
-- Retrieving detailed dataset metadata when asking for more information about specific datasets
+- Accessing both published and unpublished datasets (unpublished only with API key and access permissions)
+- Retrieving dataset metadata when asking for more information about specific datasets
+- Listing files within datasets with filtering and pagination
+- Retrieving and viewing text-based dataset files directly in chat (under 5MB)
 
 ### Example Queries
 
 - "Search Borealis for datasets about pollination"
-- "Use my Borealis search tool to find datasets from UofT about dementia"
+- "Use my Borealis search tool to find datasets from UofT about bees"
 - "Show me datasets from the last 5 years from UBC about forestry"
 - "Find datasets about Halifax healthcare"
 - "Tell me more about the SynPAIN dataset"
+- "What files are in this dataset?"
+- "Can we look at the readme file together?"
 
 ## Features
 
 - **Search**: Query by keywords and subjects
-- **University Filtering**: translation of institution names to dataverse identifiers (e.g., "University of Toronto" → `toronto`)
+- **University Filtering**: Translation of institution names to dataverse identifiers (e.g., "University of Toronto" → `toronto`)
 - **Geographic Filtering**: Filter by the geographic coverage of datasets (what region the data is about, not where researchers are located)
 - **Sorting**: Sort results by relevance (default), date (newest first), or name (alphabetical)
 - **Type Filtering**: Filter by dataset, dataverse, or file types
-- **Detailed Metadata Retrieval**: Get information about specific datasets including full descriptions, all authors with affiliations, keywords, license information, and file lists
-- **Flexible Parameters**: Customize number of results (up to 100 per request)
+- **Metadata Retrieval**: Get information about specific datasets including descriptions, all authors with affiliations, keywords, license information, and file lists
+- **Limit Results**: Customize number of results (up to 100 per request)
 - **Authentication Support**: Optional API key for accessing unpublished datasets
 - **Automatic Fallback**: Falls back to public search if authentication fails
-- **Results**: Should return DOI links, authors, publication year, and description summaries
+- **Results**: Returns DOI links, authors, publication year, and description summaries
 
 ## Prerequisites
 
@@ -44,8 +48,6 @@ This connector relies on the Borealis API and metadata to allow:
 - A Borealis account and API key (optional - public searches work without authentication)
 
 ## Installation
-
-Example below is using Claude desktop on a Mac: 
 
 ### 1. Install Required Dependencies
 
@@ -125,7 +127,7 @@ You should see messages indicating the server started and connected.
 Open a **new conversation** in Claude Desktop and try:
 
 ```
-Search Borealis for datasets about pelagic species from the University of Alberta
+Search Borealis for datasets about pelagic species from UBC
 ```
 
 ## Usage
@@ -163,10 +165,11 @@ After viewing search results, you can ask for detailed metadata:
 Tell me more about the [dataset name]
 ```
 
-This retrieves comprehensive information including full descriptions, all authors with affiliations, keywords, license details, and file information.
+This retrieves metadata including descriptions, all authors with affiliations, keywords, license details, and file information.
 
 ### Advanced Options
 
+The tool supports:
 - **Number of results**: Request more or fewer results (max 100) in prompt
 - **Sorting**: Sort by relevance (default), date (newest first), or name (alphabetical)
 - **Type filtering**: Filter by dataset, dataverse, or file
@@ -174,28 +177,33 @@ This retrieves comprehensive information including full descriptions, all author
 
 ## Supported Institutions
 
-Includes mappings for 70+ Canadian institutions. See `borealis_server.py` for the complete list.
+Includes mappings for 70+ Canadian institutions including. See `borealis_server.py` for the complete list.
 
 ## Tools Available
 
-The MCP server provides two tools:
+The MCP server has four tools:
 
 ### 1. search_datasets
-Search for datasets with support for:
-- Keyword queries
-- Institution filtering
-- Geographic filtering (country, province/state, city)
+Search for datasets
 
 ### 2. get_dataset_metadata
-Retrieve detailed metadata for a specific dataset including:
-- Full description (with HTML stripped for readability)
-- All authors with institutional affiliations
-- Publication date
-- Keywords and subjects
-- License information
-- Alternative URLs (e.g., HuggingFace repositories)
-- Dataset version and status
-- Contact information
+Retrieve metadata for a specific dataset
+
+### 3. list_dataset_files
+List all files in a specific dataset with support for:
+- Pagination (limit and offset parameters)
+- File type filtering (search by extension or filename)
+- File metadata (size, type, access restrictions)
+- MD5 checksums for verification
+- File IDs for retrieval
+
+### 4. get_dataset_file
+Download and retrieve file content with intelligent handling:
+- Text-based files only (CSV, TXT, DAT, R, Python, etc.)!!
+- 5MB maximum file size for chat display
+- Automatic line truncation (first 100 lines for long files)
+- File format detection and validation
+- Error messages for unsupported formats
 
 ## Architecture
 
@@ -212,7 +220,7 @@ Retrieve detailed metadata for a specific dataset including:
 2. The MCP server translates institution names to dataverse identifiers and formats queries
 3. The server queries the Borealis API with appropriate filters
 4. Results are parsed and formatted
-5. Returns structured results with DOI links and metadata 
+5. Returns structured results with DOI links and metadata
 
 ## Troubleshooting
 
@@ -290,13 +298,12 @@ The server should start and wait for input without errors.
 
 Areas for potential enhancement:
 
+- Code refactoring (split this up into config, tools). It's a little unweildy. 
 - Regional institution groupings (e.g., all Toronto institutions)
-- File download capabilities
-- More advanced search operators
+- Broader file download capabilities
 - Better error handling and user feedback
 - Expanded geographic mappings
 - Date range filtering
-- refactoring code, splitting it up if more tools are added
 
 ## License
 
@@ -306,7 +313,7 @@ GPLv3
 
 - Built using the [Model Context Protocol](https://modelcontextprotocol.io/)
 - Developed with a lot of assistance from Claude 
-- Powered by the amazing Dataverse API and search, and [Borealis Dataverse](https://borealisdata.ca)
+- Powered by [Borealis Dataverse](https://borealisdata.ca). Borealis has high quality metadata, a well-structured API, and clear documentation. The connector depends on that foundation.
 
 ## Support
 
