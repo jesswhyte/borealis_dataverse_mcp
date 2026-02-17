@@ -30,19 +30,6 @@ This connector allows:
 - "What files are in this dataset?"
 - "Can we look at the readme file together?"
 
-## Features
-
-- **Search**: Query by keywords and subjects
-- **University Filtering**: Translation of institution names to dataverse identifiers (e.g., "University of Toronto" → `toronto`)
-- **Geographic Filtering**: Filter by the geographic coverage of datasets (what region the data is about, not where researchers are located)
-- **Sorting**: Sort results by relevance (default), date (newest first), or name (alphabetical)
-- **Type Filtering**: Filter by dataset, dataverse, or file types
-- **Metadata Retrieval**: Get information about specific datasets including descriptions, all authors with affiliations, keywords, license information, and file lists
-- **Limit Results**: Customize number of results (up to 100 per request)
-- **Authentication Support**: Optional API key for accessing unpublished datasets
-- **Automatic Fallback**: Falls back to public search if authentication fails
-- **Results**: Returns DOI links, authors, publication year, and description summaries
-
 ## Prerequisites
 
 - Claude Desktop (Claude Desktop is used here in the instructions as an example)
@@ -169,7 +156,7 @@ Tell me more about the [dataset name]
 
 This retrieves metadata including descriptions, all authors with affiliations, keywords, license details, and file information.
 
-### Advanced Options
+### Options
 
 The tool supports:
 - **Number of results**: Request more or fewer results (max 100) in prompt
