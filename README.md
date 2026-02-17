@@ -1,6 +1,6 @@
 # Borealis Dataverse MCP Server
 
-This is a personal experimentation project and not affiliated with Borealis or Dataverse. It's also a work in progress. It is a custom MCP (Model Context Protocol) server that runs locally and enables a tool like Claude Desktop to search the [Borealis Dataverse](https://borealisdata.ca) - Canada's research data repository - directly from conversations.
+This is a personal experimentation project and not affiliated with Borealis or Dataverse. It's also a work in progress. It is a custom MCP (Model Context Protocol) server that runs locally and enables a tool like Claude Desktop to search the public [Borealis Dataverse](https://borealisdata.ca) - Canada's research data repository - directly from conversations.
 
 **Note**: This MCP server was built with help from Claude for the Python parts.
 
