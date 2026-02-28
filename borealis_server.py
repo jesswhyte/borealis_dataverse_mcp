@@ -966,8 +966,8 @@ async def get_dataset_file(arguments: dict) -> list[TextContent]:
     
     # Define binary extensions to explicitly reject
     BINARY_EXTENSIONS = [
-        '.pdf', '.zip', '.xlsx', '.xls', '.sav', '.dta', '.rdata', 
-        '.rds', '.docx', '.doc', '.pptx', '.ppt', '.jpg', '.jpeg', 
+        '.pdf', '.zip', '.xlsx', '.xls', '.sav', '.dta', '.rdata',
+        '.rds', '.doc', '.pptx', '.ppt', '.jpg', '.jpeg',
         '.png', '.gif', '.exe', '.dll', '.bin'
     ]
     
@@ -1078,22 +1078,61 @@ async def get_dataset_file(arguments: dict) -> list[TextContent]:
             
             # Get the file content
             file_content = response.content
-            
-            # Try to decode as text
-            try:
-                # Try UTF-8 first
-                text_content = file_content.decode('utf-8')
-            except UnicodeDecodeError:
+
+            # DOCX extraction
+            if filename_lower.endswith('.docx'):
                 try:
-                    # Try Latin-1 as fallback
-                    text_content = file_content.decode('latin-1')
-                except:
+                    import io
+                    from docx import Document
+                    doc = Document(io.BytesIO(file_content))
+                    extracted_lines = []
+                    for para in doc.paragraphs:
+                        style_name = para.style.name if para.style else ""
+                        if style_name.startswith("Heading 1"):
+                            extracted_lines.append(f"# {para.text}")
+                        elif style_name.startswith("Heading 2"):
+                            extracted_lines.append(f"## {para.text}")
+                        elif style_name.startswith("Heading 3"):
+                            extracted_lines.append(f"### {para.text}")
+                        elif "Heading" in style_name:
+                            extracted_lines.append(f"#### {para.text}")
+                        else:
+                            extracted_lines.append(para.text)
+                    text_content = "\n".join(extracted_lines)
+                except ImportError:
+                    download_url = f"https://borealisdata.ca/api/access/datafile/{file_id}"
                     return [TextContent(
                         type="text",
-                        text=f"⚠️ Cannot display '{filename}' - File appears to be binary or uses an unsupported encoding.\n\n"
-                             f"This file cannot be decoded as text. It may be a binary file or use a non-standard "
-                             f"text encoding. Please download it directly from Borealis to examine with appropriate software."
+                        text=f"Cannot extract '{filename}': python-docx is not installed.\n\n"
+                             f"To enable Word document extraction, install it with:\n"
+                             f"  pip install python-docx\n\n"
+                             f"**Direct download link:** {download_url}"
                     )]
+                except Exception as e:
+                    download_url = f"https://borealisdata.ca/api/access/datafile/{file_id}"
+                    return [TextContent(
+                        type="text",
+                        text=f"Failed to extract text from '{filename}': {str(e)}\n\n"
+                             f"**Direct download link:** {download_url}"
+                    )]
+            else:
+                # Try to decode as text
+                try:
+                    # Try UTF-8 first
+                    text_content = file_content.decode('utf-8')
+                except UnicodeDecodeError:
+                    try:
+                        # Try Latin-1 as fallback
+                        text_content = file_content.decode('latin-1')
+                    except:
+                        download_url = f"https://borealisdata.ca/api/access/datafile/{file_id}"
+                        return [TextContent(
+                            type="text",
+                            text=f"⚠️ Cannot display '{filename}' - File appears to be binary or uses an unsupported encoding.\n\n"
+                                 f"This file cannot be decoded as text. It may be a binary file or use a non-standard "
+                                 f"text encoding. Please download it directly from Borealis to examine with appropriate software.\n\n"
+                                 f"**Direct download link:** {download_url}"
+                        )]
             
             # Split into lines and check length
             lines = text_content.split('\n')

@@ -42,8 +42,10 @@ This connector allows:
 ### 1. Install Required Dependencies
 
 ```bash
-pip install mcp httpx
+pip install mcp httpx python-docx
 ```
+
+`python-docx` is required for Word document (`.docx`) extraction. If you skip it, the server will still work — `.docx` files will return a download link with instructions to install the library.
 
 ### 2. Clone This Repository
 
@@ -190,7 +192,8 @@ List all files in a specific dataset with support for:
 ### 4. get_dataset_file
 Download and retrieve file content with intelligent handling:
 
-- Text-based files only (CSV, TXT, DAT, R, Python, etc.)
+- Text-based files (CSV, TXT, DAT, R, Python, etc.) displayed directly in chat
+- Word documents (`.docx`) extracted as plain text with heading structure preserved (requires `python-docx`)
 - 5MB maximum file size for chat display
 - Configurable line limit (`max_lines`, default 100, max 2000); when truncated, response explains the limit and offers to re-fetch with a higher value
 - Pass `doi` to include a direct download link in truncation messages
