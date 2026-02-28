@@ -9,6 +9,7 @@ import httpx
 from typing import Optional
 from mcp.server.fastmcp import FastMCP
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 from starlette.requests import Request
 
@@ -1039,6 +1040,7 @@ if __name__ == "__main__":
         sys.stderr.flush()
 
         app = mcp.sse_app()
+        app = TrustedHostMiddleware(app, allowed_hosts=["*"])
 
         print("Starting uvicorn server...", file=sys.stderr)
         sys.stderr.flush()
