@@ -315,7 +315,7 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="get_dataset_file",
-            description="Download and retrieve the content of a specific file from a Borealis dataset. Use this when the user wants to examine, analyze, or explore a specific file. IMPORTANT: Only supports text-based files under 5MB. Binary files (PDF, ZIP, Excel) and large data files are not suitable for chat display. The file content will be truncated to 100 lines if longer.",
+            description="Download and retrieve the content of a specific file from a Borealis dataset. Use this when the user wants to examine, analyze, or explore a specific file. IMPORTANT: Only supports text-based files under 5MB. Binary files (PDF, ZIP, Excel) and large data files are not suitable for chat display. By default, file content is truncated to the first 100 lines to protect Claude's context window. You can request up to 2,000 lines via the max_lines parameter. When truncation occurs, inform the user of the limit and offer to re-fetch with more lines (up to 2,000) or to download the file directly from Borealis.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -326,6 +326,14 @@ async def list_tools() -> list[Tool]:
                     "filename": {
                         "type": "string",
                         "description": "Optional: The filename for context (helps with user-friendly error messages)."
+                    },
+                    "max_lines": {
+                        "type": "integer",
+                        "description": "Maximum number of lines to display (default: 100, maximum: 2000). Increase if the user wants to see more of the file."
+                    },
+                    "doi": {
+                        "type": "string",
+                        "description": "Optional: The DOI URL of the parent dataset (e.g., 'https://doi.org/10.34990/FK2/ABC123'). Included in truncation messages so the user can download the full file directly."
                     }
                 },
                 "required": ["file_id"]
@@ -935,6 +943,8 @@ async def get_dataset_file(arguments: dict) -> list[TextContent]:
     """Download and retrieve content of a specific file from a dataset."""
     file_id = arguments.get("file_id", "")
     filename = arguments.get("filename", "file")
+    max_lines = min(int(arguments.get("max_lines", 100)), 2000)
+    doi = arguments.get("doi", "")
     
     if not file_id:
         return [TextContent(
@@ -1080,23 +1090,33 @@ async def get_dataset_file(arguments: dict) -> list[TextContent]:
             result_text += f"**File size:** {len(file_content):,} bytes ({len(file_content) / 1024:.1f} KB)\n\n"
             
             # Truncate if needed
-            if total_lines > 100:
-                result_text += f"⚠️ **Note:** File truncated to first 100 lines for display (file has {total_lines:,} total lines)\n\n"
+            if total_lines > max_lines:
+                doi_line = f"\n- **Download the full file directly:** Visit the dataset at {doi}" if doi else ""
+                result_text += (
+                    f"⚠️ **Note:** File truncated to first {max_lines:,} lines "
+                    f"(file has {total_lines:,} total lines)\n\n"
+                    f"**Why the limit?** Claude's context window is 200,000 tokens. Loading large files "
+                    f"in full can crowd out conversation history and reduce response quality. "
+                    f"The maximum supported limit is 2,000 lines.\n\n"
+                    f"**Your options:**\n"
+                    f"- **See more lines:** Ask to re-fetch this file with a higher line limit (up to 2,000)"
+                    f"{doi_line}\n\n"
+                )
                 result_text += "---\n\n"
-                display_lines = lines[:100]
+                display_lines = lines[:max_lines]
             else:
                 result_text += "---\n\n"
                 display_lines = lines
-            
+
             # Add line numbers and content
             for line_num, line in enumerate(display_lines, 1):
                 # Limit very long lines
                 if len(line) > 500:
                     line = line[:500] + "... (line truncated)"
                 result_text += f"{line_num:4d} | {line}\n"
-            
-            if total_lines > 100:
-                result_text += f"\n... ({total_lines - 100:,} more lines not shown)"
+
+            if total_lines > max_lines:
+                result_text += f"\n... ({total_lines - max_lines:,} more lines not shown)"
             
             return [TextContent(type="text", text=result_text)]
         
