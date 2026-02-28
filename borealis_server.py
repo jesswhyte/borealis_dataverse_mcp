@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import asyncio
 import os
+import re
 import httpx
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -233,7 +234,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Search query string (searches titles, descriptions, keywords, etc.)"
+                        "description": "Search query string (searches titles, descriptions, keywords, etc.). Supports boolean operators: use uppercase AND, OR, NOT for boolean logic (e.g., 'salmon AND trout', 'climate OR weather', 'salmon NOT Atlantic'). Lowercase and/or/not are treated as literal keywords by the API."
                     },
                     "per_page": {
                         "type": "integer",
@@ -376,6 +377,10 @@ def format_date(date_string: str) -> str:
 async def search_datasets(arguments: dict) -> list[TextContent]:
     """Search for datasets in Borealis Dataverse."""
     query = arguments.get("query", "*")
+    # Normalize boolean operators to uppercase so Borealis treats them as boolean logic.
+    # The API requires AND/OR/NOT in uppercase; lowercase versions are treated as keywords.
+    # Word boundaries prevent false matches inside words (e.g., "Oregon", "android").
+    query = re.sub(r'\b(and|or|not)\b', lambda m: m.group(0).upper(), query, flags=re.IGNORECASE)
     per_page = arguments.get("per_page", 10)
     sort_field = arguments.get("sort", "relevance")
     result_type = arguments.get("type")
@@ -972,12 +977,23 @@ async def get_dataset_file(arguments: dict) -> list[TextContent]:
     is_binary = any(filename_lower.endswith(ext) for ext in BINARY_EXTENSIONS)
     
     if is_binary:
+        download_url = f"https://borealisdata.ca/api/access/datafile/{file_id}"
+        if filename_lower.endswith('.pdf'):
+            return [TextContent(
+                type="text",
+                text=f"⚠️ Cannot retrieve '{filename}' as text — PDFs must be read natively.\n\n"
+                     f"**Direct download link:** {download_url}\n\n"
+                     f"**Tip for Claude Desktop users:** Download the file using the link above, "
+                     f"then drag it directly into this Claude Desktop conversation window. "
+                     f"Claude will read the full PDF natively with better fidelity than any "
+                     f"text extraction approach."
+            )]
         return [TextContent(
             type="text",
             text=f"⚠️ Cannot retrieve '{filename}' - Binary file format not supported.\n\n"
                  f"This tool only supports text-based files (CSV, TXT, DAT, R, Python, etc.) "
-                 f"that can be displayed in chat. Binary files like PDF, Excel, ZIP, and SPSS "
-                 f"data files (.sav) must be downloaded separately through the Borealis website."
+                 f"that can be displayed in chat.\n\n"
+                 f"**Direct download link:** {download_url}"
         )]
     
     # Build the API URL for file access
