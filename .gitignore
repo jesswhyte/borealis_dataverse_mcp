@@ -4,5 +4,7 @@
 IMPLEMENTATION_SUMMARY.md
 README_HTTP.md
 SUNDAY.md
+STDI_STATUS.md
 TESTING.md
 __pycache__/
+*.log

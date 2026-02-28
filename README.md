@@ -18,7 +18,8 @@ This connector allows:
 - Accessing both published and unpublished datasets (unpublished only with API key and access permissions)
 - Retrieving dataset metadata when asking for more information about specific datasets
 - Listing files within datasets with filtering and pagination
-- Retrieving and viewing text-based dataset files directly in chat (under 5MB)
+- Retrieving and viewing text-based dataset files directly in chat (under 5MB, configurable line limit)
+- Boolean operators (AND/OR/NOT) supported in searches, case-insensitive
 
 ### Example Queries
 
@@ -173,7 +174,7 @@ Includes mappings for 70+ Canadian institutions. See `borealis_server.py` for th
 The MCP server has four tools:
 
 ### 1. search_datasets
-Search for datasets
+Search for datasets. Supports boolean operators (AND/OR/NOT) — case-insensitive, automatically normalized.
 
 ### 2. get_dataset_metadata
 Retrieve metadata for a specific dataset
@@ -188,11 +189,14 @@ List all files in a specific dataset with support for:
 
 ### 4. get_dataset_file
 Download and retrieve file content with intelligent handling:
-- Text-based files only (CSV, TXT, DAT, R, Python, etc.)!!
+
+- Text-based files only (CSV, TXT, DAT, R, Python, etc.)
 - 5MB maximum file size for chat display
-- Automatic line truncation (first 100 lines for long files)
+- Configurable line limit (`max_lines`, default 100, max 2000); when truncated, response explains the limit and offers to re-fetch with a higher value
+- Pass `doi` to include a direct download link in truncation messages
+- PDFs return a direct download URL and a Claude Desktop drag-and-drop tip
+- Other binary files return a direct download URL
 - File format detection and validation
-- Error messages for unsupported formats
 
 ## Architecture
 
