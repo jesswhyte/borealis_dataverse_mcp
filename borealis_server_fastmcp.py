@@ -1038,7 +1038,7 @@ if __name__ == "__main__":
         print("Creating FastMCP ASGI app...", file=sys.stderr)
         sys.stderr.flush()
 
-        app = mcp.http_app()
+        app = mcp.sse_app()
 
         print("Starting uvicorn server...", file=sys.stderr)
         sys.stderr.flush()
